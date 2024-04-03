@@ -1,0 +1,11 @@
+ZACH WALDEN
+Programming Assigment #3
+
+This script emulates some sample values for a page frame table. Given a logical address, 
+its physical address will be printed if it is in the page frame table. 
+
+#########
+Executing
+#########
+
+In a python interpreter, simply run OS-3.py

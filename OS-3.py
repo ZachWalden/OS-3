@@ -1,65 +1,53 @@
 # Zach Walden
 # Programming Assignment 3
 
-import random
+#Set Page & frame size to 256 bytes
+page_size = 256  
+frame_size = 256  
 
-PAGE_SIZE = 1024  
-FRAME_SIZE = 1024  
-NUM_PAGES = 16  
-NUM_FRAMES = 8  
+class PageFrame:
 
-#Function returns a logical address within the given parameters of the system memory
-def generate_logical_address():
-    return random.randint(0, NUM_PAGES * PAGE_SIZE - 1) 
+    # Initialize empty table
+    def __init__(self, page_size, frame_size):
+        self.page_size = page_size
+        self.frame_size = frame_size
+        self.table = {}  
+
+    # Add the frame number into page frame table
+    def map(self, page_number, frame_number):
+        self.table[page_number] = frame_number
+
+    # Translate the logical address given the frame number is in the table
+    def translate(self, logical_address):
+        page_number = logical_address // self.page_size
+        offset = logical_address % self.page_size
+        if page_number in self.table:
+            frame_number = self.table[page_number]
+            return frame_number, offset
+        else:
+            return None, None  # Handle page fault here
+
+# Sample input
+logical_addresses = [0x3A7F, 0xABCD, 0x5678]
+
+table1 = PageFrame(page_size, frame_size)
+
+# Fill page frame table with a few random addresses
+table1.map(0x0D, 0x01)
+table1.map(0x2B, 0x02)
+table1.map(0x15, 0x03)
+
+# Page frames for given addresses, preventing page faults
+table1.map(0xAB, 0x05)
+table1.map(0x56, 0x06)
 
 
-random.seed()  # Seed random number generator
+# Translate logical addresses
+for logical_address in logical_addresses:
+    frame_number, offset = table1.translate(logical_address)
 
-# Initialize empty page frame table
-page_frame_table = [-1] * NUM_PAGES  # Page/frame table initialized with -1 indicating no mapping initially
-
-# Initialize empty physical memory 
-physical_memory = [-1] * NUM_FRAMES  
-
-# Fill page/frame table and physical memory
-for i in range(NUM_PAGES):
-    if random.random() < 0.5:
-        page_frame_table[i] = i % NUM_FRAMES 
+    #If a frame number is returned, print page number & offset
+    if frame_number is not None:
+        print(f"Logical Address: {hex(logical_address)} => Page Number: 0x{frame_number:02x}, Offset: 0x{offset:02x}")
     else:
-        page_frame_table[i] = 1
-
-# Run 10 random addrsses through table
-for _ in range(10):
-    #Get random address, calculate page # and offset
-    logical_address = generate_logical_address()  
-    page_number = logical_address // PAGE_SIZE  
-    offset = logical_address % PAGE_SIZE  
-
-    # Verify page is within given range:
-    if page_number < NUM_PAGES:  
-
-        # Get corresponding frame number from page frame table
-        frame_number = page_frame_table[page_number]  
-
-        # Calculates the physical address by adding offset to the base address of the frame
-        physical_address = frame_number * FRAME_SIZE + offset  
-
-        if logical_address != physical_address:
-
-            # Parse address to print page number and offset 
-            hexed_addr = hex(physical_address)[2:]
-            offset_num = hexed_addr[-2:]
-            page_num = hexed_addr.replace(offset_num, "")
-
-            if len(page_num) == 1:
-                page_num = "0" + page_num
-            elif len(page_num) == 0:
-                page_num = "00"
-
-        if logical_address != physical_address:
-            print(f"Logical Address: 0x{logical_address:04X} => Physical Address: 0x{physical_address:04X}, Page Number: 0x{page_num} , Offset Number: 0x{offset_num}")  # Prints the logical and physical addresses in hexadecimal format
-    else:
-        print(f"Invalid Page Number: {page_number}")  # Prints an error message for invalid page number
-        page_frame_table[page_number] = page_number   # Update page table with page number
-
-
+        print(f"Page fault occurred for logical address: {hex(logical_address)}")
